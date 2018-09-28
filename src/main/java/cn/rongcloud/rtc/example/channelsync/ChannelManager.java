@@ -1,34 +1,29 @@
 package cn.rongcloud.rtc.example.channelsync;
 
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.gson.Gson;
-
 import cn.rongcloud.rtc.example.channelsync.domain.Channel;
 import cn.rongcloud.rtc.example.channelsync.domain.Event;
 import cn.rongcloud.rtc.example.channelsync.domain.Notify;
 import cn.rongcloud.rtc.example.channelsync.domain.ResponseEntity;
 import cn.rongcloud.rtc.example.config.Config;
+import com.google.gson.Gson;
+import org.apache.http.HttpEntity;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ChannelManager {
 
@@ -135,13 +130,6 @@ public class ChannelManager {
 
 		try (CloseableHttpResponse response = httpclient.execute(request)) {
 
-			int statusCode = response.getStatusLine().getStatusCode();
-
-			logger.info("app regist result code : {}", statusCode);	
-			if (statusCode != 200) {
-				return false;
-			}
-
 			ResponseEntity result = getResult(response);
 			if (result.getCode() == ResponseEntity.CODE_OK) {
 				return true;
@@ -152,7 +140,7 @@ public class ChannelManager {
 		}
 	}
 
-	private static HttpPost subscribeRequest() {
+	private static HttpPost subscribeRequest() throws UnsupportedEncodingException {
 		String gatewayAddr = Config.instance().getGatewayAddr();
 		String registAddr = gatewayAddr + (gatewayAddr.endsWith("/") ? "channel/subscribe" : "/channel/subscribe");
 		String recvAddr = Config.instance().getRecvAddr();
@@ -162,16 +150,9 @@ public class ChannelManager {
 		RequestConfig requestConfig = RequestConfig.custom().setSocketTimeout(5000).setConnectTimeout(5000).build();
 		request.setConfig(requestConfig);
 		SignUtil.addSign(request);
-
-		// {'appid':appid,'addr':addr,'token':token}
-		Map<String,String> param = new TreeMap<>();
-		param.put("appid", Config.instance().getAppKey());
-		param.put("addr", Config.instance().getRecvAddr());
-
-		ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(gson.toJson(param).getBytes());
-		InputStreamEntity inputStreamEntity = new InputStreamEntity(byteArrayInputStream);
-
-		request.setEntity(inputStreamEntity);
+        List <NameValuePair> nvps = new ArrayList <>();
+        nvps.add(new BasicNameValuePair("addr", recvAddr));
+        request.setEntity(new UrlEncodedFormEntity(nvps));
 		return request;
 	}
 
@@ -184,7 +165,7 @@ public class ChannelManager {
 		while ((line = bufferedReader.readLine()) != null)
 			sb.append(line);
 		
-//		System.out.println(sb.toString());
+		System.out.println(sb.toString());
 		ResponseEntity object = gson.fromJson(sb.toString(), ResponseEntity.class);
 		return object;
 	}

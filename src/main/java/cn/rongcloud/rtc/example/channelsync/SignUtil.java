@@ -52,4 +52,9 @@ public class SignUtil {
 	public static String byteToHexString(byte[] bytes) {
 		return String.valueOf(Hex.encodeHex(bytes));
 	}
+
+    /*public static void main(String[] args) {
+	    System.out.print(SignUtil.hexSHA1("OYjzdrxMmUOmq", "666666", "666666"));
+
+    }*/
 }
