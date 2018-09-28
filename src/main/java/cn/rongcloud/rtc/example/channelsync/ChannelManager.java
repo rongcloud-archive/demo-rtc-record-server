@@ -130,11 +130,17 @@ public class ChannelManager {
 
 		try (CloseableHttpResponse response = httpclient.execute(request)) {
 
-			ResponseEntity result = getResult(response);
-			if (result.getCode() == ResponseEntity.CODE_OK) {
+			String result = getResult(response);
+			if(response.getStatusLine().getStatusCode() != ResponseEntity.CODE_OK){
+			    logger.error("do regist fail , {}",result);
+			    return false;
+            }
+            ResponseEntity responseEntity = gson.fromJson(result, ResponseEntity.class);
+
+            if (responseEntity.getCode() == ResponseEntity.CODE_OK) {
 				return true;
 			} else {
-				logger.error(" do regist fail , {}", result.getMsg());
+				logger.error(" do regist fail , {}", responseEntity.getMsg());
 				return false;
 			}
 		}
@@ -156,7 +162,7 @@ public class ChannelManager {
 		return request;
 	}
 
-	private static ResponseEntity getResult(CloseableHttpResponse response) throws Exception {
+	private static String getResult(CloseableHttpResponse response) throws Exception {
 		String line = null;
 		StringBuilder sb = new StringBuilder();
 		HttpEntity entity = response.getEntity();
@@ -164,10 +170,8 @@ public class ChannelManager {
 		BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(content, "utf-8"));
 		while ((line = bufferedReader.readLine()) != null)
 			sb.append(line);
-		
-		System.out.println(sb.toString());
-		ResponseEntity object = gson.fromJson(sb.toString(), ResponseEntity.class);
-		return object;
+
+		return sb.toString();
 	}
 
 	public Collection<Channel> getChannelList() {
