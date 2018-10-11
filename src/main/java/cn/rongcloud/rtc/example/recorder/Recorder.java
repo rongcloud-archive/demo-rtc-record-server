@@ -40,7 +40,8 @@ public class Recorder {
 
 	public void start() throws Exception {
 
-		String dir = Config.instance().getRecordSaveDir() + cid.split("@")[0] + "_" + dateFormat.format(new Date())
+		//cid中如果含有特殊字符 | 会使得录像错误，特修正
+		String dir = Config.instance().getRecordSaveDir() + cid.replaceAll("\\|","").split("@")[0] + "_" + dateFormat.format(new Date())
 				+ "/";
 
 		File file = new File(dir);
@@ -50,15 +51,18 @@ public class Recorder {
 
 		String logFile = dir + "result.log";
 		File logs = new File(logFile);
-		logs.createNewFile();
+		if (!logs.createNewFile()) {
+			logger.warn("create log file error,path={}", logFile);
+		}
 
 		String localIp = Config.instance().getExternalToLocalIpMap().get(addr);
 		if (!StringUtils.isEmpty(localIp)) {
 			addr = localIp;
 		}
 		
-		cid = cid.replaceAll("|", "\\|");
-		String cmd = String.format(cmdFormat, addr, port, appid, cid, dir, uniqueKey, logFile);
+		String cmd = String.format(cmdFormat, addr, port, appid, cid.replaceAll("\\|", "\\\\|"), dir, uniqueKey,
+				logFile);
+		
 		logger.info(cmd);
 
 		List<String> cmds = new ArrayList<String>();
