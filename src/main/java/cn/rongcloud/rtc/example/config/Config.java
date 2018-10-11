@@ -12,7 +12,7 @@ public class Config {
 	public static final int REGIST_INTERVAL = 1000 * 60 * 2;
 	
 	private String ip = "0.0.0.0";
-	private int port = 8800;
+	private int port = 8801;
 
 	@RequiredConfig
 	private String appKey;
