@@ -56,6 +56,8 @@ public class Recorder {
 		if (!StringUtils.isEmpty(localIp)) {
 			addr = localIp;
 		}
+		
+		cid = cid.replaceAll("|", "\\|");
 		String cmd = String.format(cmdFormat, addr, port, appid, cid, dir, uniqueKey, logFile);
 		logger.info(cmd);
 
