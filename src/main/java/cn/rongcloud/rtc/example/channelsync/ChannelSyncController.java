@@ -28,7 +28,7 @@ import cn.rongcloud.rtc.example.config.Config;
 public class ChannelSyncController {
 
 	private static Logger logger = LoggerFactory.getLogger(ChannelSyncController.class);
-	
+
 	private static Gson gson = new Gson();
 
 	@RequestMapping("/recv")
@@ -37,25 +37,25 @@ public class ChannelSyncController {
 			HttpServletResponse response) throws IOException {
 
 		logger.info(body);
-		
+
 		Notify notify = gson.fromJson(body, Notify.class);
 
 		String appid = notify.getAppid();
 		if (!Config.instance().getAppKey().equals(appid)) {
 			logger.warn("appid error {}", appid);
 			response.setStatus(403);
-			return new ResponseEntity().setCode(403).setMsg("appid error");
+			return new ResponseEntity(403, "appid error");
 		}
 
 		if (!SignUtil.checkSign(request)) {
 			logger.warn("sign error");
 			response.setStatus(403);
-			return new ResponseEntity().setCode(403).setMsg("sign error");
+			return new ResponseEntity(403, "sign error");
 		}
 
 		ChannelManager.instance().onChannelNotify(notify);
 
-		return new ResponseEntity().setCode(200).setMsg("ok");
+		return new ResponseEntity(200, "ok");
 	}
 
 	@RequestMapping("/channelInfo")

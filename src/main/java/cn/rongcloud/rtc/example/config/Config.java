@@ -2,6 +2,8 @@ package cn.rongcloud.rtc.example.config;
 
 import org.springframework.util.StringUtils;
 
+import cn.rongcloud.rtc.example.channelsync.domain.RecordType;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,6 +26,7 @@ public class Config {
 	private String recvAddr;
 	
 	private String recordSaveDir;
+	private int recordType = RecordType.AUTOSYNC.getValue();
 	private Map<String,String> externalToLocalIpMap = new HashMap<>();
 	private boolean mixMode = false;
 	
@@ -48,6 +51,10 @@ public class Config {
 
 	public String getRecvAddr() {
 		return recvAddr;
+	}
+	
+	public int getRecordType() {
+		return recordType;
 	}
 
 	public String getGatewayAddr() {

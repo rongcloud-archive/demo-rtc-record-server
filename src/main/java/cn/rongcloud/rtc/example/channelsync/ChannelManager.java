@@ -184,4 +184,8 @@ public class ChannelManager {
 		String s = gson.toJson(channelList);
 		return s;
 	}
+	
+	public Channel getChannel(String cid) {
+		return channelMap.get(cid);
+	}
 }
