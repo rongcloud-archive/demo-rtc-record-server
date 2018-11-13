@@ -28,7 +28,7 @@ Java 8+
   #替换为自己的secret  
   secret=  
   #接收会场同步消息的地址，格式为 http://外网访问地址:端口/recv  
-  recvAddr=  
+  recvAddr=   
 5. 启动demo  
   nohup java -jar demo-rtc-record-server-*.jar &  
 6. 验证，观察日志nohup.out，无报错，当有会场状态变时能收到请求  
@@ -42,7 +42,9 @@ Java 8+
 4. 将Recorder放到jar包的同级目录  
 5. 配置ServiceSettings.properties  
   #录像文件保存目录  
-  recordSaveDir=  
+  recordSaveDir=
+  #录像模式 1：自动全录模式；2：自定义异步录像；默认为1。自定义录像模式可以自定义录像文件名
+  recordType=   
 6. 重启demo  
 7. 验证，录像文件保存目录可以看到可播放的媒体文件  
 

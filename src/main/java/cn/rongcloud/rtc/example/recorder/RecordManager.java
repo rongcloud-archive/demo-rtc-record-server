@@ -1,5 +1,6 @@
 package cn.rongcloud.rtc.example.recorder;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +24,8 @@ public class RecordManager implements ChannelEventListener {
 	private Map<String, Recorder> recorderMap = new HashMap<>();
 
 	private Map<String, String> memberChannelMap = new HashMap<>();
+	
+	private Map<String, Recorder> memberRecorderMap = new HashMap<>();
 
 	private RecordManager() {
 	}
@@ -46,6 +49,19 @@ public class RecordManager implements ChannelEventListener {
 	public void onMemberLeft(Event event, Channel channel) {
 		if (Config.instance().getRecordType() == RecordType.CUSTOMASYNC.getValue()) {
 			memberChannelMap.remove(event.getUid());
+			if (memberRecorderMap.containsKey(event.getUid())) {
+				memberRecorderMap.remove(event.getUid());
+			}
+		} else {
+			String cid = channel.getCid();
+			
+			//当前channel中只有一个人时，用户不会上传媒体流，停止录像
+			synchronized (this) {
+				if (channel.getMembers().size() < 2 && recorderMap.get(cid) != null) {
+					logger.info("stop recorder,cid={}", cid);
+					recorderMap.remove(cid);
+				}
+			}
 		}
 	}
 
@@ -53,6 +69,19 @@ public class RecordManager implements ChannelEventListener {
 	public void onMemberKicked(Event event, Channel channel) {
 		if (Config.instance().getRecordType() == RecordType.CUSTOMASYNC.getValue()) {
 			memberChannelMap.remove(event.getUid());
+			if (memberRecorderMap.containsKey(event.getUid())) {
+				memberRecorderMap.remove(event.getUid());
+			}
+		} else {
+			String cid = channel.getCid();
+			
+			//当前channel中只有一个人时，用户不会上传媒体流，停止录像
+			synchronized (this) {
+				if (channel.getMembers().size() < 2 && recorderMap.get(cid) != null) {
+					logger.info("stop recorder,cid={}", cid);
+					recorderMap.remove(cid);
+				}
+			}
 		}
 	}
 
@@ -75,7 +104,7 @@ public class RecordManager implements ChannelEventListener {
 		synchronized (this) {
 			try {
 				Recorder recorder = new Recorder(Config.instance().getAppKey(), channel.getCid(), host, port,
-						channel.getUniqueKey(), null);
+						channel.getUniqueKey(), null, null);
 				recorder.start();
 				recorderMap.put(channel.getCid(), recorder);
 			} catch (Exception e) {
@@ -111,8 +140,11 @@ public class RecordManager implements ChannelEventListener {
 		return null;
 	}
 
-	public boolean startRecord(Channel channel, String fileName) {
+	public boolean startRecord(String uid, Channel channel, String fileName) {
 		try {
+			if (checkRecorderIsExsit(uid, channel)) {
+				return true;
+			}
 			String mediaServerAddr = getMediaServerAddrByChannel(channel);
 			if (mediaServerAddr == null) {
 				return false;
@@ -121,9 +153,9 @@ public class RecordManager implements ChannelEventListener {
 			String host = arrayAddr[0];
 			String port = arrayAddr[1];
 			Recorder recorder = new Recorder(Config.instance().getAppKey(), channel.getCid(), host, port,
-					channel.getUniqueKey(), fileName);
+					channel.getUniqueKey(), uid, fileName);
 			recorder.start();
-			recorderMap.put(channel.getCid(), recorder);
+			memberRecorderMap.put(uid, recorder);
 			return true;
 		} catch (Exception e) {
 			logger.error("server start record failed!");
@@ -131,12 +163,13 @@ public class RecordManager implements ChannelEventListener {
 		}
 	}
 
-	public boolean stopRecord(Channel channel) {
+	public boolean stopRecord(String uid) {
 		try {
-			Recorder recorder = recorderMap.get(channel.getCid());
+			Recorder recorder = memberRecorderMap.get(uid);
 			if (recorder != null) {
 				recorder.stop();
 			}
+			memberRecorderMap.remove(uid);
 			return true;
 		} catch (Exception e) {
 			logger.error("server stop record failed!", e);
@@ -151,5 +184,20 @@ public class RecordManager implements ChannelEventListener {
 			}
 		}
 		return null;
+	}
+	
+	private boolean checkRecorderIsExsit(String uid, Channel channel) throws IOException {
+		Recorder recorder = memberRecorderMap.get(uid);
+		if (recorder == null) {
+			return false;
+		}
+		
+		if (!recorder.checkIsSameRecord(channel.getCid(), channel.getUniqueKey())) {
+			memberRecorderMap.remove(uid);
+			recorder.stop();
+			return false;
+		}
+		
+		return true;
 	}
 }
