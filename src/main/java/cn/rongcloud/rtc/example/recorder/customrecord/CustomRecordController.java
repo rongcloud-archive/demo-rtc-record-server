@@ -22,16 +22,16 @@ public class CustomRecordController {
 	public void startCustomRecord(String uid, String filename, HttpServletRequest request, HttpServletResponse response)
 			throws IOException {
 		if (Config.instance().getRecordType() != RecordType.CUSTOMASYNC.getValue()) {
-			sendResponse(403, "server does not support this record type!", response);
+			response.sendError(403, "server does not support this record type!");
 			return;
 		}
 		if (uid == null || uid.length() == 0) {
-			sendResponse(405, "uid can not be empty!", response);
+			response.sendError(405, "uid can not be empty!");
 			return;
 		}
 		Channel channel = RecordManager.instance().getChannelByUid(uid);
 		if (channel == null) {
-			sendResponse(404, "the user is not joining a call!", response);
+			response.sendError(404, "the user is not joining a call!");
 			return;
 		}
 
@@ -39,7 +39,7 @@ public class CustomRecordController {
 		if (bIsSuc) {
 			sendResponse(200, "OK", response);
 		} else {
-			sendResponse(500, "start record failed!", response);
+			response.sendError(500, "start record failed!");
 		}
 	}
 
@@ -47,11 +47,11 @@ public class CustomRecordController {
 	public void stopCustomRecord(String uid, HttpServletRequest request, HttpServletResponse response)
 			throws IOException {
 		if (Config.instance().getRecordType() != RecordType.CUSTOMASYNC.getValue()) {
-			sendResponse(403, "server does not support this record type!", response);
+			response.sendError(403, "server does not support this record type!");
 			return;
 		}
 		if (uid == null || uid.length() == 0) {
-			sendResponse(405, "uid can not be empty!", response);
+			response.sendError(405, "uid can not be empty!");
 			return;
 		}
 
@@ -59,7 +59,7 @@ public class CustomRecordController {
 		if (bIsSuc) {
 			sendResponse(200, "OK", response);
 		} else {
-			sendResponse(500, "stop record failed!", response);
+			response.sendError(500, "start record failed!");
 		}
 	}
 

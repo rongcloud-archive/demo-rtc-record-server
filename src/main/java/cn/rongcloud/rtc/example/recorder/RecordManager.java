@@ -49,6 +49,7 @@ public class RecordManager implements ChannelEventListener {
 	public void onMemberLeft(Event event, Channel channel) {
 		if (Config.instance().getRecordType() == RecordType.CUSTOMASYNC.getValue()) {
 			memberChannelMap.remove(event.getUid());
+			//用户离开从map中移除掉，录像程序会在会场结束时自动结束
 			if (memberRecorderMap.containsKey(event.getUid())) {
 				memberRecorderMap.remove(event.getUid());
 			}
@@ -69,6 +70,7 @@ public class RecordManager implements ChannelEventListener {
 	public void onMemberKicked(Event event, Channel channel) {
 		if (Config.instance().getRecordType() == RecordType.CUSTOMASYNC.getValue()) {
 			memberChannelMap.remove(event.getUid());
+			//用户离开从map中移除掉，录像程序会在会场结束时自动结束
 			if (memberRecorderMap.containsKey(event.getUid())) {
 				memberRecorderMap.remove(event.getUid());
 			}
@@ -192,6 +194,7 @@ public class RecordManager implements ChannelEventListener {
 			return false;
 		}
 		
+		//清理过期的record。
 		if (!recorder.checkIsSameRecord(channel.getCid(), channel.getUniqueKey())) {
 			memberRecorderMap.remove(uid);
 			recorder.stop();
