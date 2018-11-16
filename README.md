@@ -23,29 +23,39 @@ Java 8+
 2. 将maven打包好的可执行jar包demo-rtc-record-server-*.jar复制到当前目录  
 3. 将项目源码根目录中的ServiceSettings.properties,log4j.properties复制到当前目录  
 4. 配置ServiceSettings.properties  
-  #替换为自己的appKey  
-  appKey=  
-  #替换为自己的secret  
-  secret=  
-  #接收会场同步消息的地址，格式为 http://外网访问地址:端口/recv  
-  recvAddr=   
+    #替换为自己的appKey  
+    appKey=  
+    #替换为自己的secret  
+    secret=  
+    #接收会场同步消息的地址，格式为 http://外网访问地址:端口/recv  
+    recvAddr=   
 5. 启动demo  
-  nohup java -jar demo-rtc-record-server-*.jar &  
+    nohup java -jar demo-rtc-record-server-*.jar &  
 6. 验证，观察日志nohup.out，无报错，当有会场状态变时能收到请求  
 
 * 服务器录像  
 1. 会场同步已经调试成功  
+
 2. 下载[录制程序](http://downloads.rongcloud.cn/Recorder.tar.gz)  
-  Recorder    录像主程序  
-  lib         依赖库  
+    Recorder    录像主程序  
+    lib         依赖库  
+
 3. 将依赖库lib的路径添加到 /etc/ld.so.conf.d/  
+
+    编辑/etc/ld.so.conf文件，在新的一行中加入依赖库lib文件所在目录；
+
+    运行ldconfig，以更新/etc/ld.so.cache文件；
+
 4. 将Recorder放到jar包的同级目录  
+
 5. 配置ServiceSettings.properties  
-  #录像文件保存目录  
-  recordSaveDir=
-  #录像模式 1：自动全录模式；2：自定义异步录像；默认为1。自定义录像模式可以自定义录像文件名
-  recordType=   
+    #录像文件保存目录  
+    recordSaveDir=
+    #录像模式1：自动全录模式；2：自定义异步录像；默认为1。自定义录像模式可以自定义录像文件名
+    recordType=   
+
 6. 重启demo  
+
 7. 验证，录像文件保存目录可以看到可播放的媒体文件  
 
 ## 重要类  
@@ -64,4 +74,67 @@ cn.rongcloud.rtc.example.recorder
 RecordManager         录像管理类，实现了ChannelEventListener接口  
 Recorder              用于调用录像C程序  
 RecordController      录像下载页面入口  
+CustomRecordController   自定义录像页面入口
 ```
+##### 录像模式选择：
+
+server支持两种录像模式（在ServiceSettings.properties配置recordType）：
+
+1，自动全录模式，这种方式是会场建立后，server就自动开始录像，录像的文件名按照默认命名规则。
+
+2，自定义异步录像，这种录像模式，服务器默认不录像，需要录像的会场依靠调用API接口启动、停止录像； 满足客户根据需要动态指定录制会场以及远程调用启动录像服务需要。接口的参数有userid和filename两个参数，其中userid为必选，filename为可选，如果不指定FileName则按照默认命名规则。
+
+##### 异步开启录像
+
+URL
+
+```
+POST /customrecord/start
+```
+
+body格式: json
+
+```json
+{
+    "uid": "57a53c03-a1ca-d4f6-1a25-18d8c26ea488",//用户的uid，必选
+    "filename": "testfilename"，//自定义的录像文件名，可选
+}
+
+```
+
+Response
+
+```json
+{
+  "code":200,
+  "msg":"OK"
+}
+```
+
+##### 异步关闭录像
+
+URL
+
+```
+POST /customrecord/stop
+```
+
+body格式: json
+
+```json
+
+{
+    "uid": "57a53c03-a1ca-d4f6-1a25-18d8c26ea488"//用户的uid，必选
+}
+
+```
+
+Response
+
+```json
+{
+  "code":200,
+  "msg":"OK"
+}
+```
+
