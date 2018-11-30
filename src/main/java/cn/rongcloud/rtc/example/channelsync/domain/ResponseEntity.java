@@ -15,6 +15,11 @@ public class ResponseEntity {
 	private String msg;
 	private Object data;
 	
+	public ResponseEntity(int code, String msg) {
+		this.code = code;
+		this.msg = msg;
+	}
+	
 	public int getCode() {
 		return code;
 	}

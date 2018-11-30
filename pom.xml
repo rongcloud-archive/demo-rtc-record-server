@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>cn.rongcloud.rtc</groupId>
 	<artifactId>demo-rtc-record-server</artifactId>
-	<version>1.0.2.Release</version>
+	<version>1.0.3.Release</version>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
